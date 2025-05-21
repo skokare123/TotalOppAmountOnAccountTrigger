@@ -1,0 +1,24 @@
+trigger sumofOppamountonAccount on Opportunity (after insert){
+set<Id> accId = new Set<Id>();
+List<Account> accList = new List<Account>();
+
+for(Opportunity opp:trigger.new){
+if(opp.AccountId!=null){
+accId.add(opp.AccountId);
+}
+}
+
+AggregateResult[] result =[SELECET AccountId,SUM(Amount)toatalAmmount FROM Opportunity where AccountId IN:accId GROUP BY AccountId];
+
+for(AggregateResult agg:result){
+Account acc= new Account();
+acc.OppTotalAmount= (Decimal)agg.get('toatalAmmount');
+acc.Id =(Id)agg.get('AccountId');
+accList.add(acc);
+}
+
+if(!accList.isEmpty()){
+
+update accList;
+}
+}
